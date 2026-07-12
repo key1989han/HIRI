@@ -44,16 +44,26 @@ def soil_moisture_reading(*, seed: float | None = None, t: float | None = None) 
     }
 
 
+_HISTORY: dict[str, list[dict[str, Any]]] = {}
+
+
+def sensor_history(device_id: str, limit: int = 20) -> list[dict[str, Any]]:
+    rows = _HISTORY.get(device_id) or []
+    return list(rows[-max(1, min(limit, 100)) :])
+
+
 def tick_farm_sensors(devices: list[Any]) -> list[dict[str, Any]]:
     """
     Update in-memory Device objects that look like soil/temp sensors.
 
     `devices` items must have `.id`, `.model`, `.state` attributes (HIRI Device).
+    Keeps a short in-process history ring per device id.
     """
     updated: list[dict[str, Any]] = []
     for i, d in enumerate(devices):
         mid = str(getattr(d, "model", "") or "").upper()
         did = str(getattr(d, "id", "") or "")
+        reading: dict[str, Any] | None = None
         if "SOIL" in mid or "soil" in did:
             reading = soil_moisture_reading(seed=float(i))
             d.state = {**dict(d.state or {}), "state": reading["moisture_pct"], "status": reading["status"]}
@@ -70,4 +80,9 @@ def tick_farm_sensors(devices: list[Any]) -> list[dict[str, Any]]:
                     "humidity": reading["humidity_pct"],
                 }
             updated.append({"id": did, **reading})
+        if reading is not None and did:
+            hist = _HISTORY.setdefault(did, [])
+            hist.append({k: v for k, v in reading.items() if k != "model"})
+            if len(hist) > 50:
+                del hist[:-50]
     return updated

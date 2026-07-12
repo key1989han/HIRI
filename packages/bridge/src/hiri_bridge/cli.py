@@ -122,6 +122,21 @@ def devices_sim_tick() -> None:
     console.print_json(data={"updated": len(updated), "readings": updated[:12]})
 
 
+@devices_app.command("sim-history")
+def devices_sim_history(
+    device_id: str = typer.Option(..., "--id"),
+    limit: int = typer.Option(10, "--limit", "-n", min=1, max=50),
+) -> None:
+    """Show recent in-process sensor sim history for a device."""
+    from hiri_bridge.sensors.sim import sensor_history, tick_farm_sensors
+
+    reg = _registry()
+    # ensure at least one sample exists
+    tick_farm_sensors(reg.list())
+    rows = sensor_history(device_id, limit=limit)
+    console.print_json(data={"id": device_id, "n": len(rows), "history": rows})
+
+
 @ha_app.command("discovery")
 def ha_discovery(out: Path | None = typer.Option(None, "--out", "-o")) -> None:
     reg = _registry()
