@@ -257,6 +257,25 @@ def default_seed_devices() -> list[Device]:
             attributes={"device_class": "motion"},
             adapter="mqtt",
         ),
+        Device(
+            id="sensor.humidity_bathroom",
+            name="Bathroom humidity",
+            domain="sensor",
+            model="HIRI-TH",
+            area="bathroom",
+            state={"state": 62.0},
+            attributes={"unit_of_measurement": "%", "device_class": "humidity"},
+            adapter="mqtt",
+        ),
+        Device(
+            id="switch.exhaust_fan",
+            name="Bathroom exhaust",
+            domain="switch",
+            model="HIRI-RELAY",
+            area="bathroom",
+            state={"state": "off"},
+            adapter="mqtt",
+        ),
     ]
     return seeds
 

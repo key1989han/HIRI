@@ -463,5 +463,36 @@
       "device_class": "motion"
     },
     "adapter": "mqtt"
+  },
+  {
+    "id": "sensor.humidity_bathroom",
+    "name": "Bathroom humidity",
+    "domain": "sensor",
+    "manufacturer": "HIRI",
+    "model": "HIRI-TH",
+    "area": "bathroom",
+    "online": true,
+    "state": {
+      "state": 62.0
+    },
+    "attributes": {
+      "unit_of_measurement": "%",
+      "device_class": "humidity"
+    },
+    "adapter": "mqtt"
+  },
+  {
+    "id": "switch.exhaust_fan",
+    "name": "Bathroom exhaust",
+    "domain": "switch",
+    "manufacturer": "HIRI",
+    "model": "HIRI-RELAY",
+    "area": "bathroom",
+    "online": true,
+    "state": {
+      "state": "off"
+    },
+    "attributes": {},
+    "adapter": "mqtt"
   }
 ]
