@@ -20,6 +20,7 @@ Product: [mergeos-bounties/HIRI](https://github.com/mergeos-bounties/HIRI)
 - [Quick start (bridge)](#quick-start-bridge)
 - [CLI reference](#cli-reference)
 - [Adapters](#adapters)
+- [Diagrams](#diagrams)
 - [Architecture](#architecture)
 - [Safety](#safety)
 - [Development](#development)
@@ -107,6 +108,18 @@ Demo writes HA discovery JSON under the bridge `OUT_DIR` (e.g. `discovery.json`)
 | `matter` | scaffold | Planned |
 
 ---
+
+
+## Diagrams
+
+Interactive Archify diagrams (dark/light theme, export PNG/SVG in the HTML viewer):
+
+| Diagram | Interactive | README embed |
+| --- | --- | --- |
+| **Architecture** | [docs/diagrams/architecture.html](docs/diagrams/architecture.html) | ![Architecture](docs/diagrams/architecture.svg) |
+| **Workflow** | [docs/diagrams/workflow.html](docs/diagrams/workflow.html) | ![Workflow](docs/diagrams/workflow.svg) |
+
+*Generated with [archify](https://github.com/tt-a1i) — open the `.html` files for theme toggle and export.*
 
 ## Architecture
 
