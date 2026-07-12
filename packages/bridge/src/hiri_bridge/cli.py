@@ -111,6 +111,17 @@ def devices_seed() -> None:
     console.print(f"[green]Seeded[/green] {reg.stats()['total']} devices")
 
 
+@devices_app.command("sim-tick")
+def devices_sim_tick() -> None:
+    """Advance DHT22/soil sensor simulators and update registry state (offline)."""
+    from hiri_bridge.sensors.sim import tick_farm_sensors
+
+    reg = _registry()
+    updated = tick_farm_sensors(reg.list())
+    reg.save()
+    console.print_json(data={"updated": len(updated), "readings": updated[:12]})
+
+
 @ha_app.command("discovery")
 def ha_discovery(out: Path | None = typer.Option(None, "--out", "-o")) -> None:
     reg = _registry()
