@@ -1,0 +1,114 @@
+from __future__ import annotations
+
+from hiri_bridge.devices.types import Device
+
+# Home Assistant MQTT discovery topic prefix
+DISCOVERY_PREFIX = "homeassistant"
+
+
+def discovery_topic(device: Device) -> str:
+    # homeassistant/<component>/<node_id>/<object_id>/config
+    node = "hiri"
+    object_id = device.id.replace(".", "_")
+    return f"{DISCOVERY_PREFIX}/{device.domain}/{node}/{object_id}/config"
+
+
+def state_topic(device: Device) -> str:
+    return f"hiri/state/{device.id.replace('.', '/')}"
+
+
+def command_topic(device: Device) -> str:
+    return f"hiri/cmd/{device.id.replace('.', '/')}"
+
+
+def discovery_payload(device: Device) -> dict:
+    """Build HA MQTT discovery config for a device."""
+    base = {
+        "name": device.name,
+        "unique_id": f"hiri_{device.id.replace('.', '_')}",
+        "state_topic": state_topic(device),
+        "availability_topic": "hiri/status",
+        "payload_available": "online",
+        "payload_not_available": "offline",
+        "device": {
+            "identifiers": [f"hiri_{device.id}"],
+            "manufacturer": device.manufacturer,
+            "model": device.model,
+            "name": device.name,
+            "suggested_area": device.area,
+        },
+    }
+    domain = device.domain
+    if domain in {"light", "switch", "fan", "siren", "humidifier"}:
+        base["command_topic"] = command_topic(device)
+        base["payload_on"] = "ON"
+        base["payload_off"] = "OFF"
+    if domain == "light":
+        base["brightness"] = True
+        base["brightness_scale"] = 255
+    if domain == "sensor":
+        base["unit_of_measurement"] = device.attributes.get("unit_of_measurement", "")
+        base["device_class"] = device.attributes.get("device_class")
+        base["state_class"] = "measurement"
+    if domain == "binary_sensor":
+        base["device_class"] = device.attributes.get("device_class", "opening")
+        base["payload_on"] = "ON"
+        base["payload_off"] = "OFF"
+    if domain == "lock":
+        base["command_topic"] = command_topic(device)
+        base["payload_lock"] = "LOCK"
+        base["payload_unlock"] = "UNLOCK"
+        base["state_locked"] = "LOCKED"
+        base["state_unlocked"] = "UNLOCKED"
+    if domain == "cover":
+        base["command_topic"] = command_topic(device)
+        base["payload_open"] = "OPEN"
+        base["payload_close"] = "CLOSE"
+        base["payload_stop"] = "STOP"
+        base["position_topic"] = state_topic(device) + "/position"
+    if domain == "climate":
+        base["mode_command_topic"] = command_topic(device) + "/mode"
+        base["temperature_command_topic"] = command_topic(device) + "/temp"
+        base["modes"] = ["off", "cool", "heat", "auto"]
+        base["min_temp"] = 16
+        base["max_temp"] = 30
+    if domain == "number":
+        base["command_topic"] = command_topic(device)
+        base["min"] = device.attributes.get("min", 0)
+        base["max"] = device.attributes.get("max", 100)
+        base["step"] = device.attributes.get("step", 1)
+    if domain == "select":
+        base["command_topic"] = command_topic(device)
+        base["options"] = device.attributes.get("options", [])
+    if domain == "button":
+        base["command_topic"] = command_topic(device)
+        base["payload_press"] = "PRESS"
+    if domain == "camera":
+        base["topic"] = state_topic(device)
+    if domain == "vacuum":
+        base["command_topic"] = command_topic(device)
+        base["supported_features"] = ["start", "return_home", "battery"]
+    if domain == "media_player":
+        base["command_topic"] = command_topic(device)
+    if domain == "alarm_control_panel":
+        base["command_topic"] = command_topic(device)
+        base["supported_features"] = ["arm_home", "arm_away", "trigger"]
+    if domain == "water_heater":
+        base["command_topic"] = command_topic(device)
+        base["temperature_unit"] = "C"
+    return base
+
+
+def export_discovery(devices: list[Device]) -> list[dict]:
+    out = []
+    for d in devices:
+        out.append(
+            {
+                "topic": discovery_topic(d),
+                "payload": discovery_payload(d),
+                "state_topic": state_topic(d),
+                "command_topic": command_topic(d) if d.domain != "sensor" else None,
+                "device_id": d.id,
+            }
+        )
+    return out

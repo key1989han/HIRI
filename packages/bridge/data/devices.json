@@ -1,0 +1,297 @@
+[
+  {
+    "id": "light.living_main",
+    "name": "Living room light",
+    "domain": "light",
+    "manufacturer": "HIRI",
+    "model": "HIRI-RGBW",
+    "area": "living",
+    "online": true,
+    "state": {
+      "state": "on",
+      "brightness": 180,
+      "color_temp": 350
+    },
+    "attributes": {},
+    "adapter": "local"
+  },
+  {
+    "id": "switch.pump_a",
+    "name": "Farm pump A",
+    "domain": "switch",
+    "manufacturer": "HIRI",
+    "model": "HIRI-RELAY",
+    "area": "farm",
+    "online": true,
+    "state": {
+      "state": "off"
+    },
+    "attributes": {},
+    "adapter": "mqtt"
+  },
+  {
+    "id": "binary_sensor.door_front",
+    "name": "Front door",
+    "domain": "binary_sensor",
+    "manufacturer": "HIRI",
+    "model": "HIRI-CONTACT",
+    "area": "entry",
+    "online": true,
+    "state": {
+      "state": "off"
+    },
+    "attributes": {
+      "device_class": "door"
+    },
+    "adapter": "local"
+  },
+  {
+    "id": "sensor.soil_moisture_1",
+    "name": "Soil moisture bed 1",
+    "domain": "sensor",
+    "manufacturer": "HIRI",
+    "model": "HIRI-SOIL",
+    "area": "farm",
+    "online": true,
+    "state": {
+      "state": 42.5
+    },
+    "attributes": {
+      "unit_of_measurement": "%",
+      "device_class": "moisture"
+    },
+    "adapter": "mqtt"
+  },
+  {
+    "id": "sensor.temp_greenhouse",
+    "name": "Greenhouse temperature",
+    "domain": "sensor",
+    "manufacturer": "HIRI",
+    "model": "HIRI-TH",
+    "area": "farm",
+    "online": true,
+    "state": {
+      "state": 28.1
+    },
+    "attributes": {
+      "unit_of_measurement": "\u00b0C",
+      "device_class": "temperature"
+    },
+    "adapter": "local"
+  },
+  {
+    "id": "climate.bedroom_ac",
+    "name": "Bedroom AC",
+    "domain": "climate",
+    "manufacturer": "HIRI",
+    "model": "HIRI-AC",
+    "area": "bedroom",
+    "online": true,
+    "state": {
+      "hvac_mode": "off",
+      "temperature": 26,
+      "current_temperature": 29
+    },
+    "attributes": {},
+    "adapter": "local"
+  },
+  {
+    "id": "cover.garage",
+    "name": "Garage door",
+    "domain": "cover",
+    "manufacturer": "HIRI",
+    "model": "HIRI-COVER",
+    "area": "garage",
+    "online": true,
+    "state": {
+      "state": "closed",
+      "position": 0
+    },
+    "attributes": {},
+    "adapter": "local"
+  },
+  {
+    "id": "lock.front",
+    "name": "Front lock",
+    "domain": "lock",
+    "manufacturer": "HIRI",
+    "model": "HIRI-LOCK",
+    "area": "entry",
+    "online": true,
+    "state": {
+      "state": "locked"
+    },
+    "attributes": {},
+    "adapter": "local"
+  },
+  {
+    "id": "fan.ceiling_lr",
+    "name": "Ceiling fan",
+    "domain": "fan",
+    "manufacturer": "HIRI",
+    "model": "HIRI-FAN",
+    "area": "living",
+    "online": true,
+    "state": {
+      "state": "off",
+      "percentage": 0
+    },
+    "attributes": {},
+    "adapter": "local"
+  },
+  {
+    "id": "media_player.tv_living",
+    "name": "Living TV",
+    "domain": "media_player",
+    "manufacturer": "HIRI",
+    "model": "HIRI-TV",
+    "area": "living",
+    "online": true,
+    "state": {
+      "state": "off",
+      "volume_level": 0.2
+    },
+    "attributes": {},
+    "adapter": "local"
+  },
+  {
+    "id": "vacuum.bot_1",
+    "name": "Vacuum bot",
+    "domain": "vacuum",
+    "manufacturer": "HIRI",
+    "model": "HIRI-VAC",
+    "area": "home",
+    "online": true,
+    "state": {
+      "state": "docked",
+      "battery": 100
+    },
+    "attributes": {},
+    "adapter": "local"
+  },
+  {
+    "id": "camera.yard",
+    "name": "Yard camera",
+    "domain": "camera",
+    "manufacturer": "HIRI",
+    "model": "HIRI-CAM",
+    "area": "yard",
+    "online": true,
+    "state": {
+      "state": "idle"
+    },
+    "attributes": {
+      "stream_url": "rtsp://192.0.2.10/stream"
+    },
+    "adapter": "local"
+  },
+  {
+    "id": "button.panic",
+    "name": "Panic button",
+    "domain": "button",
+    "manufacturer": "HIRI",
+    "model": "HIRI-BTN",
+    "area": "entry",
+    "online": true,
+    "state": {},
+    "attributes": {},
+    "adapter": "local"
+  },
+  {
+    "id": "number.feed_dose",
+    "name": "Feed dose ml",
+    "domain": "number",
+    "manufacturer": "HIRI",
+    "model": "HIRI-DOSE",
+    "area": "farm",
+    "online": true,
+    "state": {
+      "value": 50
+    },
+    "attributes": {
+      "min": 0,
+      "max": 500,
+      "step": 10,
+      "unit": "ml"
+    },
+    "adapter": "local"
+  },
+  {
+    "id": "select.mode_farm",
+    "name": "Farm mode",
+    "domain": "select",
+    "manufacturer": "HIRI",
+    "model": "HIRI-MODE",
+    "area": "farm",
+    "online": true,
+    "state": {
+      "option": "auto"
+    },
+    "attributes": {
+      "options": [
+        "auto",
+        "manual",
+        "sleep"
+      ]
+    },
+    "adapter": "local"
+  },
+  {
+    "id": "siren.alarm",
+    "name": "Siren",
+    "domain": "siren",
+    "manufacturer": "HIRI",
+    "model": "HIRI-SIREN",
+    "area": "home",
+    "online": true,
+    "state": {
+      "state": "off"
+    },
+    "attributes": {},
+    "adapter": "local"
+  },
+  {
+    "id": "humidifier.bedroom",
+    "name": "Bedroom humidifier",
+    "domain": "humidifier",
+    "manufacturer": "HIRI",
+    "model": "HIRI-HUM",
+    "area": "bedroom",
+    "online": true,
+    "state": {
+      "state": "off",
+      "humidity": 55
+    },
+    "attributes": {},
+    "adapter": "local"
+  },
+  {
+    "id": "water_heater.boiler",
+    "name": "Boiler",
+    "domain": "water_heater",
+    "manufacturer": "HIRI",
+    "model": "HIRI-WH",
+    "area": "utility",
+    "online": true,
+    "state": {
+      "state": "off",
+      "temperature": 45
+    },
+    "attributes": {},
+    "adapter": "local"
+  },
+  {
+    "id": "alarm_control_panel.home",
+    "name": "Home alarm",
+    "domain": "alarm_control_panel",
+    "manufacturer": "HIRI",
+    "model": "HIRI-ALARM",
+    "area": "home",
+    "online": true,
+    "state": {
+      "state": "disarmed"
+    },
+    "attributes": {},
+    "adapter": "local"
+  }
+]

@@ -1,0 +1,117 @@
+from __future__ import annotations
+
+import json
+from pathlib import Path
+
+import typer
+from rich.console import Console
+from rich.table import Table
+
+from hiri_bridge import __version__
+from hiri_bridge.config import OUT_DIR
+from hiri_bridge.devices.registry import DeviceRegistry
+from hiri_bridge.devices.types import DOMAINS
+from hiri_bridge.ha.discovery import export_discovery
+
+app = typer.Typer(help="HIRI-bridge — Home Assistant smart-home bridge.", no_args_is_help=True)
+devices_app = typer.Typer(help="Device registry")
+ha_app = typer.Typer(help="Home Assistant helpers")
+app.add_typer(devices_app, name="devices")
+app.add_typer(ha_app, name="ha")
+console = Console()
+
+
+def _registry() -> DeviceRegistry:
+    reg = DeviceRegistry()
+    reg.load_or_seed()
+    return reg
+
+
+@app.command("version")
+def version_cmd() -> None:
+    console.print(f"HIRI-bridge {__version__}")
+    console.print(f"Domains: {', '.join(DOMAINS)}")
+
+
+@app.command("demo")
+def demo_cmd() -> None:
+    """Seed registry, print stats, export HA discovery pack."""
+    reg = _registry()
+    stats = reg.stats()
+    console.print_json(data=stats)
+    OUT_DIR.mkdir(parents=True, exist_ok=True)
+    disc = export_discovery(reg.list())
+    path = OUT_DIR / "discovery.json"
+    path.write_text(json.dumps(disc, indent=2) + "\n", encoding="utf-8")
+    console.print(f"[green]discovery[/green] {path} ({len(disc)} entities)")
+    # sample command
+    dev = reg.apply_command("light.living_main", "turn_on", {"brightness": 180})
+    console.print(f"[cyan]command demo[/cyan] {dev.id} → {dev.state}")
+    console.print("[bold]HIRI bridge demo complete (offline).[/bold]")
+
+
+@devices_app.command("list")
+def devices_list(domain: str | None = typer.Option(None, "--domain", "-d")) -> None:
+    reg = _registry()
+    table = Table(title="HIRI devices")
+    table.add_column("ID")
+    table.add_column("Domain")
+    table.add_column("Name")
+    table.add_column("State")
+    table.add_column("Adapter")
+    for d in reg.list():
+        if domain and d.domain != domain:
+            continue
+        table.add_row(d.id, d.domain, d.name, json.dumps(d.state, ensure_ascii=False)[:40], d.adapter)
+    console.print(table)
+
+
+@devices_app.command("cmd")
+def devices_cmd(
+    device_id: str = typer.Option(..., "--id"),
+    action: str = typer.Option(..., "--action", "-a"),
+    data: str = typer.Option("{}", "--data"),
+) -> None:
+    reg = _registry()
+    payload = json.loads(data)
+    try:
+        dev = reg.apply_command(device_id, action, payload)
+    except KeyError as exc:
+        console.print(f"[red]{exc}[/red]")
+        raise typer.Exit(1) from exc
+    console.print_json(data=dev.model_dump())
+
+
+@devices_app.command("seed")
+def devices_seed() -> None:
+    reg = DeviceRegistry()
+    reg.seed()
+    console.print(f"[green]Seeded[/green] {reg.stats()['total']} devices")
+
+
+@ha_app.command("discovery")
+def ha_discovery(out: Path | None = typer.Option(None, "--out", "-o")) -> None:
+    reg = _registry()
+    disc = export_discovery(reg.list())
+    path = out or (OUT_DIR / "discovery.json")
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(disc, indent=2) + "\n", encoding="utf-8")
+    console.print(f"[green]Wrote[/green] {path} entities={len(disc)}")
+
+
+@app.command("serve")
+def serve_cmd(
+    host: str = typer.Option("127.0.0.1", "--host"),
+    port: int = typer.Option(8780, "--port", min=1, max=65535),
+) -> None:
+    try:
+        import uvicorn
+    except ImportError as exc:
+        console.print('[red]Install API:[/red] pip install -e ".[api]"')
+        raise typer.Exit(1) from exc
+    console.print(f"HIRI bridge http://{host}:{port}/health")
+    uvicorn.run("hiri_bridge.api:app", host=host, port=port, log_level="info")
+
+
+if __name__ == "__main__":
+    app()

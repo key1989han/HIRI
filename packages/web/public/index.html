@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>HIRI Web</title>
+  <style>
+    :root { font-family: system-ui, sans-serif; color: #0f172a; background: #f1f5f9; }
+    body { margin: 0; padding: 1rem; max-width: 960px; margin-inline: auto; }
+    h1 { color: #0369a1; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 0.75rem; }
+    .card { background: #fff; border-radius: 10px; padding: 0.9rem; border: 1px solid #e2e8f0; }
+    .card h3 { margin: 0 0 0.35rem; font-size: 1rem; }
+    .muted { color: #64748b; font-size: 0.85rem; }
+    button { margin-top: 0.5rem; margin-right: 0.35rem; }
+    #status { margin: 0.5rem 0 1rem; }
+    .err { color: #b91c1c; }
+  </style>
+</head>
+<body>
+  <h1>HIRI Web</h1>
+  <p class="muted">User dashboard · talks to HIRI-bridge API</p>
+  <label>API base <input id="base" value="http://127.0.0.1:8780" size="32" /></label>
+  <button id="reload">Reload devices</button>
+  <div id="status" class="muted">Not loaded</div>
+  <div class="grid" id="grid"></div>
+  <script>
+    const statusEl = document.getElementById('status');
+    const grid = document.getElementById('grid');
+    async function load() {
+      const base = document.getElementById('base').value.replace(/\/$/, '');
+      statusEl.textContent = 'Loading…';
+      statusEl.className = 'muted';
+      try {
+        const [stats, devices] = await Promise.all([
+          fetch(base + '/stats').then(r => r.json()),
+          fetch(base + '/devices').then(r => r.json()),
+        ]);
+        statusEl.textContent = `Devices: ${stats.total} · online: ${stats.online}`;
+        grid.innerHTML = '';
+        for (const d of devices) {
+          const card = document.createElement('div');
+          card.className = 'card';
+          card.innerHTML = `<h3>${d.name}</h3>
+            <div class="muted">${d.id} · ${d.domain}</div>
+            <pre class="muted">${JSON.stringify(d.state)}</pre>`;
+          if (['light','switch','fan','siren'].includes(d.domain)) {
+            const on = document.createElement('button');
+            on.textContent = 'On';
+            on.onclick = () => cmd(base, d.id, 'turn_on');
+            const off = document.createElement('button');
+            off.textContent = 'Off';
+            off.onclick = () => cmd(base, d.id, 'turn_off');
+            card.appendChild(on); card.appendChild(off);
+          }
+          grid.appendChild(card);
+        }
+      } catch (e) {
+        statusEl.textContent = 'Bridge offline? Start: hiri-bridge serve — ' + e;
+        statusEl.className = 'err';
+      }
+    }
+    async function cmd(base, id, action) {
+      await fetch(base + '/devices/' + encodeURIComponent(id) + '/command', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action })
+      });
+      load();
+    }
+    document.getElementById('reload').onclick = load;
+    load();
+  </script>
+</body>
+</html>
