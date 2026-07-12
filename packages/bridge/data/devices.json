@@ -376,5 +376,27 @@
       "device_class": "battery"
     },
     "adapter": "mqtt"
+  },
+  {
+    "id": "fan.living_ceiling",
+    "name": "Living ceiling fan",
+    "domain": "fan",
+    "manufacturer": "HIRI",
+    "model": "HIRI-FAN",
+    "area": "living",
+    "online": true,
+    "state": {
+      "state": "off",
+      "percentage": 0,
+      "oscillating": false
+    },
+    "attributes": {
+      "percentage_step": 25,
+      "preset_modes": [
+        "breeze",
+        "sleep"
+      ]
+    },
+    "adapter": "local"
   }
 ]

@@ -210,6 +210,15 @@ def default_seed_devices() -> list[Device]:
             attributes={"unit_of_measurement": "%", "device_class": "battery"},
             adapter="mqtt",
         ),
+        Device(
+            id="fan.living_ceiling",
+            name="Living ceiling fan",
+            domain="fan",
+            model="HIRI-FAN",
+            area="living",
+            state={"state": "off", "percentage": 0, "oscillating": False},
+            attributes={"percentage_step": 25, "preset_modes": ["breeze", "sleep"]},
+        ),
     ]
     return seeds
 
