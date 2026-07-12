@@ -1,95 +1,166 @@
 # HIRI
 
-**HIRI** is a smart-home **bridge + farmware** stack optimized for **Home Assistant** and multi-ecosystem bridging.
+[![Python 3.11+](https://img.shields.io/badge/python-3.11%2B-blue.svg)](https://www.python.org/downloads/)
+[![Bridge](https://img.shields.io/badge/hiri--bridge-0.2.0-0E8A16.svg)](packages/bridge/pyproject.toml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+[![Home Assistant](https://img.shields.io/badge/Home%20Assistant-MQTT%20discovery-41BDF5.svg)](https://www.home-assistant.io/)
+[![MergeOS](https://img.shields.io/badge/MergeOS-bounties-5319E7.svg)](https://github.com/mergeos-bounties)
 
-| Package | Role |
+**HIRI** is a smart-home **bridge + farmware** stack for **Home Assistant** and multi-ecosystem device adapters — local registry, MQTT discovery, REST API, ESP firmware, and client scaffolds.
+
+Product: [mergeos-bounties/HIRI](https://github.com/mergeos-bounties/HIRI)
+
+---
+
+## Table of contents
+
+- [Monorepo packages](#monorepo-packages)
+- [Highlights](#highlights)
+- [Screenshots](#screenshots)
+- [Quick start (bridge)](#quick-start-bridge)
+- [CLI reference](#cli-reference)
+- [Adapters](#adapters)
+- [Architecture](#architecture)
+- [Safety](#safety)
+- [Development](#development)
+- [MergeOS bounties](#mergeos-bounties)
+- [License](#license)
+
+---
+
+## Monorepo packages
+
+| Package | Path | Role |
+| --- | --- | --- |
+| **HIRI-bridge** | `packages/bridge` | Device registry, adapters, HA MQTT discovery, FastAPI |
+| **HIRI-firmware** | `packages/firmware` | ESP32 / ESP8266 farmware (PlatformIO) → MQTT → HA |
+| **HIRI-web** | `packages/web` | User dashboard |
+| **HIRI-admin** | `packages/admin` | Admin console (devices, adapters, logs) |
+| **HIRI-android** / **ios** | `packages/…` | Mobile client scaffolds |
+
+Primary offline path: **bridge** (`hiri-bridge demo`).
+
+---
+
+## Highlights
+
+| Capability | Description |
 | --- | --- |
-| **HIRI-bridge** | Central bridge: HA MQTT discovery, device registry, REST API |
-| **HIRI-firmware** | ESP32 / ESP8266 farmware (PlatformIO) → MQTT → HA |
-| **HIRI-web** | User dashboard |
-| **HIRI-admin** | Admin console (devices, adapters, logs) |
-| **HIRI-android** | Android client scaffold |
-| **HIRI-ios** | iOS client scaffold |
+| **Device registry** | Seed + import devices; domains (light, sensor, …) |
+| **HA discovery** | Export MQTT discovery payloads offline |
+| **Adapters** | local, z2m, tuya, ha_rest, mqtt, matter (scaffold) |
+| **MQTT dry-run** | Publish discovery without a live broker |
+| **Command demo** | Apply sample commands (brightness, effects) in-memory |
 
-Org: [mergeos-bounties](https://github.com/mergeos-bounties) · Funded via MergeOS MRG bounties.
-
+---
 
 ## Screenshots
 
-Real captures from running the product demo (HIRI).
+| Device registry | HA discovery export |
+| :---: | :---: |
+| ![Devices](docs/screenshots/demo-devices.png) | ![Discovery](docs/screenshots/demo-discovery.png) |
+| *Live registry after demo seed/import* | *discovery.json entities* |
 
-![Device registry](docs/screenshots/demo-devices.png)
+---
 
-*Device registry*
+## Quick start (bridge)
 
-![HA discovery export](docs/screenshots/demo-discovery.png)
-
-*HA discovery export*
-
-## Quick start (bridge — runnable offline)
-
-```bash
-cd HIRI/packages/bridge
+```powershell
+cd packages\bridge
 python -m venv .venv
-# Windows
-.venv\Scripts\activate
-pip install -e ".[dev]"
+.\.venv\Scripts\activate
+pip install -e ".[dev,api]"
 
+hiri-bridge version
 hiri-bridge demo
 hiri-bridge devices list
 hiri-bridge adapters list
-hiri-bridge adapters import z2m
-hiri-bridge adapters import tuya
-hiri-bridge mqtt publish --dry-run
-hiri-bridge ha discovery --out data/out/discovery.json
-hiri-bridge serve --port 8780
 ```
 
-Optional API auth (protects POST): `set HIRI_API_TOKEN=your-secret` then send `Authorization: Bearer your-secret`.
+Demo writes HA discovery JSON under the bridge `OUT_DIR` (e.g. `discovery.json`).
 
-MQTT live publish (optional): `pip install -e ".[mqtt]"` and `hiri-bridge mqtt publish --live`.
+---
 
-Open:
-- Dashboard: `packages/web/public/index.html` (or serve static)
-- Admin: `packages/admin/public/index.html`
-- API health: `http://127.0.0.1:8780/health`
+## CLI reference
 
-## Firmware (ESP32 / ESP8266)
+| Command | Purpose |
+| --- | --- |
+| `hiri-bridge version` | Version + domains |
+| `hiri-bridge demo` | Seed registry, adapters, MQTT dry-run, export discovery |
+| `hiri-bridge devices list [-d domain]` | List devices |
+| `hiri-bridge adapters list` | Adapter catalog |
+| `hiri-bridge ha …` | Home Assistant helpers |
+| `hiri-bridge mqtt …` | MQTT discovery publish |
+| `hiri-bridge serve` | FastAPI bridge API |
 
-```bash
-cd packages/firmware
-# Install PlatformIO CLI, then:
-pio run -e esp32dev
-pio run -e esp8266
-# Flash (device connected):
-pio run -e esp32dev -t upload
+---
+
+## Adapters
+
+| Adapter | Kind | Notes |
+| --- | --- | --- |
+| `local` | builtin | In-memory seed devices (default offline) |
+| `z2m` | mqtt_http | Zigbee2MQTT import (fixture offline) |
+| `tuya` | cloud_local | Mapping stub |
+| `ha_rest` | http | HA REST `/api/states` (token for live) |
+| `mqtt` | mqtt | Discovery publish (optional paho) |
+| `matter` | scaffold | Planned |
+
+---
+
+## Architecture
+
+```text
+                    ┌─────────────┐
+   ESP farmware ───►│  MQTT / LAN │◄─── Zigbee2MQTT / Tuya stubs
+                    └──────┬──────┘
+                           ▼
+                 ┌───────────────────┐
+                 │   HIRI-bridge     │
+                 │ registry · HA disc│
+                 │ REST · adapters   │
+                 └─────────┬─────────┘
+                           ▼
+                 Home Assistant (MQTT discovery)
+                           ▲
+                 web / admin / mobile clients
 ```
 
-Farmware publishes HA MQTT discovery + state for onboard switch/sensor simulation.
+---
 
-## Packages layout
+## Safety
 
+- **Never commit** HA long-lived tokens, MQTT passwords, or Wi‑Fi credentials.  
+- Firmware defaults must not embed production secrets.  
+- Prefer dry-run MQTT in demos and CI.
+
+---
+
+## Development
+
+```powershell
+cd packages\bridge
+pytest -q
+ruff check src tests
+hiri-bridge demo
 ```
-packages/
-  bridge/          # Python 3.11+ CLI + API
-  firmware/        # PlatformIO C++ farmware
-  web/             # Static web UI
-  admin/           # Static admin UI
-  android/         # Kotlin scaffold
-  ios/             # Swift scaffold
-docs/BOUNTY.md
-```
+
+---
 
 ## MergeOS bounties
 
-1. Star this repo + [mergeos](https://github.com/mergeos-bounties/mergeos)
-2. Claim a `bounty` issue
-3. Claim on MergeOS [issue #1](https://github.com/mergeos-bounties/mergeos/issues/1)
-4. PR to **HIRI** `master` with tests/evidence
-5. Credit MRG 25/50/100/200
+Device packs, bridge adapters, firmware, web/admin UX.  
+Star + claim → PR **master** → MRG **25–200**. Evidence: discovery JSON snippet, HA entity screenshots, or flash notes.
 
-See [docs/BOUNTY.md](docs/BOUNTY.md).
+---
+
+## Tiếng Việt
+
+**HIRI** cầu nối smart-home ↔ Home Assistant (registry, MQTT discovery, adapter).  
+Chạy offline: `cd packages/bridge && hiri-bridge demo`.
+
+---
 
 ## License
 
-MIT
+MIT · MergeOS / ThanhTrucSolutions
