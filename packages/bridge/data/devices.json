@@ -8,11 +8,19 @@
     "area": "living",
     "online": true,
     "state": {
-      "state": "on",
-      "brightness": 180,
-      "color_temp": 350
+      "state": "off",
+      "brightness": 0,
+      "color_temp": 350,
+      "effect": "none"
     },
-    "attributes": {},
+    "attributes": {
+      "rgb": true,
+      "effect_list": [
+        "none",
+        "colorloop",
+        "pulse"
+      ]
+    },
     "adapter": "local"
   },
   {
@@ -92,7 +100,23 @@
       "temperature": 26,
       "current_temperature": 29
     },
-    "attributes": {},
+    "attributes": {
+      "hvac_modes": [
+        "off",
+        "heat",
+        "cool",
+        "auto",
+        "dry",
+        "fan_only"
+      ],
+      "min_temp": 16,
+      "max_temp": 30,
+      "preset_modes": [
+        "eco",
+        "boost",
+        "sleep"
+      ]
+    },
     "adapter": "local"
   },
   {
@@ -105,7 +129,8 @@
     "online": true,
     "state": {
       "state": "closed",
-      "position": 0
+      "position": 0,
+      "tilt": 0
     },
     "attributes": {},
     "adapter": "local"
@@ -134,9 +159,17 @@
     "online": true,
     "state": {
       "state": "off",
-      "percentage": 0
+      "percentage": 0,
+      "preset_mode": "low"
     },
-    "attributes": {},
+    "attributes": {
+      "preset_modes": [
+        "low",
+        "medium",
+        "high",
+        "breeze"
+      ]
+    },
     "adapter": "local"
   },
   {

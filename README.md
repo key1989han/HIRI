@@ -24,9 +24,17 @@ pip install -e ".[dev]"
 
 hiri-bridge demo
 hiri-bridge devices list
+hiri-bridge adapters list
+hiri-bridge adapters import z2m
+hiri-bridge adapters import tuya
+hiri-bridge mqtt publish --dry-run
 hiri-bridge ha discovery --out data/out/discovery.json
 hiri-bridge serve --port 8780
 ```
+
+Optional API auth (protects POST): `set HIRI_API_TOKEN=your-secret` then send `Authorization: Bearer your-secret`.
+
+MQTT live publish (optional): `pip install -e ".[mqtt]"` and `hiri-bridge mqtt publish --live`.
 
 Open:
 - Dashboard: `packages/web/public/index.html` (or serve static)

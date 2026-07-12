@@ -8,6 +8,8 @@ from rich.console import Console
 from rich.table import Table
 
 from hiri_bridge import __version__
+from hiri_bridge.adapters import import_from_adapter, list_adapters
+from hiri_bridge.adapters.mqtt_pub import MqttDiscoveryPublisher
 from hiri_bridge.config import OUT_DIR
 from hiri_bridge.devices.registry import DeviceRegistry
 from hiri_bridge.devices.types import DOMAINS
@@ -16,8 +18,12 @@ from hiri_bridge.ha.discovery import export_discovery
 app = typer.Typer(help="HIRI-bridge — Home Assistant smart-home bridge.", no_args_is_help=True)
 devices_app = typer.Typer(help="Device registry")
 ha_app = typer.Typer(help="Home Assistant helpers")
+adapters_app = typer.Typer(help="Bridge adapters")
+mqtt_app = typer.Typer(help="MQTT discovery publish")
 app.add_typer(devices_app, name="devices")
 app.add_typer(ha_app, name="ha")
+app.add_typer(adapters_app, name="adapters")
+app.add_typer(mqtt_app, name="mqtt")
 console = Console()
 
 
@@ -35,7 +41,7 @@ def version_cmd() -> None:
 
 @app.command("demo")
 def demo_cmd() -> None:
-    """Seed registry, print stats, export HA discovery pack."""
+    """Seed registry, adapters, MQTT dry-run, export HA discovery pack."""
     reg = _registry()
     stats = reg.stats()
     console.print_json(data=stats)
@@ -45,8 +51,24 @@ def demo_cmd() -> None:
     path.write_text(json.dumps(disc, indent=2) + "\n", encoding="utf-8")
     console.print(f"[green]discovery[/green] {path} ({len(disc)} entities)")
     # sample command
-    dev = reg.apply_command("light.living_main", "turn_on", {"brightness": 180})
+    dev = reg.apply_command(
+        "light.living_main",
+        "turn_on",
+        {"brightness": 180, "effect": "pulse", "color_temp": 350},
+    )
     console.print(f"[cyan]command demo[/cyan] {dev.id} → {dev.state}")
+    # adapters
+    console.print_json(data={"adapters": list_adapters()})
+    z2m = import_from_adapter("z2m")
+    tuya = import_from_adapter("tuya")
+    for d in z2m + tuya:
+        reg.upsert(d)
+    console.print(f"[cyan]imported[/cyan] z2m={len(z2m)} tuya={len(tuya)} total={reg.stats()['total']}")
+    mqtt = MqttDiscoveryPublisher()
+    dry = mqtt.publish(reg.list()[:5], dry_run=True)
+    console.print(
+        f"[cyan]mqtt dry-run[/cyan] {dry.get('count')} msgs · {dry.get('broker')} · {mqtt.status()}"
+    )
     console.print("[bold]HIRI bridge demo complete (offline).[/bold]")
 
 
@@ -99,6 +121,55 @@ def ha_discovery(out: Path | None = typer.Option(None, "--out", "-o")) -> None:
     console.print(f"[green]Wrote[/green] {path} entities={len(disc)}")
 
 
+@adapters_app.command("list")
+def adapters_list() -> None:
+    table = Table(title="HIRI adapters")
+    table.add_column("Name")
+    table.add_column("Kind")
+    table.add_column("Live")
+    table.add_column("Status")
+    table.add_column("Description")
+    for row in list_adapters():
+        table.add_row(
+            row["name"],
+            row["kind"],
+            "yes" if row["live"] else "no",
+            str(row["status"]),
+            row["description"][:48],
+        )
+    console.print(table)
+
+
+@adapters_app.command("import")
+def adapters_import(
+    name: str = typer.Argument(..., help="z2m | tuya | ha_rest"),
+) -> None:
+    reg = _registry()
+    try:
+        devices = import_from_adapter(name)
+    except ValueError as exc:
+        console.print(f"[red]{exc}[/red]")
+        raise typer.Exit(1) from exc
+    for d in devices:
+        reg.upsert(d)
+    console.print(f"[green]Imported[/green] {len(devices)} from {name} · total={reg.stats()['total']}")
+
+
+@mqtt_app.command("publish")
+def mqtt_publish(
+    dry_run: bool = typer.Option(True, "--dry-run/--live"),
+    host: str | None = typer.Option(None, "--host"),
+    port: int | None = typer.Option(None, "--port"),
+) -> None:
+    """Publish HA MQTT discovery (default dry-run, no broker required)."""
+    reg = _registry()
+    pub = MqttDiscoveryPublisher(host=host, port=port)
+    result = pub.publish(reg.list(), dry_run=dry_run)
+    console.print_json(data={k: v for k, v in result.items() if k != "messages"})
+    if dry_run and result.get("messages"):
+        console.print(f"[dim]sample topics:[/dim] {', '.join(m['topic'] for m in result['messages'][:5])}")
+
+
 @app.command("serve")
 def serve_cmd(
     host: str = typer.Option("127.0.0.1", "--host"),
@@ -110,6 +181,7 @@ def serve_cmd(
         console.print('[red]Install API:[/red] pip install -e ".[api]"')
         raise typer.Exit(1) from exc
     console.print(f"HIRI bridge http://{host}:{port}/health")
+    console.print("[dim]Optional auth: set HIRI_API_TOKEN for POST protection[/dim]")
     uvicorn.run("hiri_bridge.api:app", host=host, port=port, log_level="info")
 
 

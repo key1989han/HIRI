@@ -16,7 +16,11 @@ def default_seed_devices() -> list[Device]:
             domain="light",
             model="HIRI-RGBW",
             area="living",
-            state={"state": "off", "brightness": 0, "color_temp": 350},
+            state={"state": "off", "brightness": 0, "color_temp": 350, "effect": "none"},
+            attributes={
+                "rgb": True,
+                "effect_list": ["none", "colorloop", "pulse"],
+            },
         ),
         Device(
             id="switch.pump_a",
@@ -62,6 +66,12 @@ def default_seed_devices() -> list[Device]:
             model="HIRI-AC",
             area="bedroom",
             state={"hvac_mode": "off", "temperature": 26, "current_temperature": 29},
+            attributes={
+                "hvac_modes": ["off", "heat", "cool", "auto", "dry", "fan_only"],
+                "min_temp": 16,
+                "max_temp": 30,
+                "preset_modes": ["eco", "boost", "sleep"],
+            },
         ),
         Device(
             id="cover.garage",
@@ -69,7 +79,7 @@ def default_seed_devices() -> list[Device]:
             domain="cover",
             model="HIRI-COVER",
             area="garage",
-            state={"state": "closed", "position": 0},
+            state={"state": "closed", "position": 0, "tilt": 0},
         ),
         Device(
             id="lock.front",
@@ -85,7 +95,8 @@ def default_seed_devices() -> list[Device]:
             domain="fan",
             model="HIRI-FAN",
             area="living",
-            state={"state": "off", "percentage": 0},
+            state={"state": "off", "percentage": 0, "preset_mode": "low"},
+            attributes={"preset_modes": ["low", "medium", "high", "breeze"]},
         ),
         Device(
             id="media_player.tv_living",
@@ -220,17 +231,33 @@ class DeviceRegistry:
                     state["brightness"] = data["brightness"]
                 if "percentage" in data:
                     state["percentage"] = data["percentage"]
+                if "color_temp" in data:
+                    state["color_temp"] = data["color_temp"]
+                if "rgb_color" in data:
+                    state["rgb_color"] = data["rgb_color"]
+                if "effect" in data:
+                    state["effect"] = data["effect"]
+                if "preset_mode" in data:
+                    state["preset_mode"] = data["preset_mode"]
             elif action in {"turn_off", "off"}:
                 state["state"] = "off"
                 if "brightness" in state:
                     state["brightness"] = 0
                 if "percentage" in state:
                     state["percentage"] = 0
+            elif action == "set_percentage" and domain == "fan":
+                state["percentage"] = int(data.get("percentage", 50))
+                state["state"] = "on" if state["percentage"] else "off"
+            elif action == "set_preset_mode" and domain == "fan":
+                state["preset_mode"] = data.get("preset_mode", "low")
+                state["state"] = "on"
         elif domain == "lock":
             if action == "lock":
                 state["state"] = "locked"
             elif action == "unlock":
                 state["state"] = "unlocked"
+            if "code" in data:
+                state["last_code_set"] = bool(data["code"])
         elif domain == "cover":
             if action == "open":
                 state["state"] = "open"
@@ -242,11 +269,22 @@ class DeviceRegistry:
                 pos = int(data.get("position", 50))
                 state["position"] = pos
                 state["state"] = "open" if pos > 0 else "closed"
+            elif action == "set_tilt":
+                state["tilt"] = int(data.get("tilt", 0))
         elif domain == "climate":
             if "hvac_mode" in data:
                 state["hvac_mode"] = data["hvac_mode"]
             if "temperature" in data:
                 state["temperature"] = data["temperature"]
+            if "preset_mode" in data:
+                state["preset_mode"] = data["preset_mode"]
+            if action in {"set_hvac_mode", "set_temperature", "set_preset_mode"}:
+                if "hvac_mode" in data:
+                    state["hvac_mode"] = data["hvac_mode"]
+                if "temperature" in data:
+                    state["temperature"] = data["temperature"]
+                if "preset_mode" in data:
+                    state["preset_mode"] = data["preset_mode"]
         elif domain == "number":
             if "value" in data:
                 state["value"] = data["value"]

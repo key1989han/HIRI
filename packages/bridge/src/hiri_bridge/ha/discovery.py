@@ -46,6 +46,29 @@ def discovery_payload(device: Device) -> dict:
     if domain == "light":
         base["brightness"] = True
         base["brightness_scale"] = 255
+        base["supported_color_modes"] = ["brightness", "color_temp"]
+        if device.attributes.get("rgb"):
+            base["supported_color_modes"] = ["rgb", "brightness", "color_temp"]
+        if device.attributes.get("effect_list"):
+            base["effect"] = True
+            base["effect_list"] = device.attributes["effect_list"]
+    if domain == "climate":
+        base["modes"] = device.attributes.get(
+            "hvac_modes", ["off", "heat", "cool", "auto"]
+        )
+        base["min_temp"] = device.attributes.get("min_temp", 16)
+        base["max_temp"] = device.attributes.get("max_temp", 30)
+        base["temp_step"] = 0.5
+        base["current_temperature_topic"] = state_topic(device)
+    if domain == "cover":
+        base["position_topic"] = state_topic(device)
+        base["set_position_topic"] = command_topic(device)
+        base["payload_open"] = "OPEN"
+        base["payload_close"] = "CLOSE"
+        base["payload_stop"] = "STOP"
+    if domain == "fan":
+        base["percentage"] = True
+        base["preset_modes"] = device.attributes.get("preset_modes", ["low", "medium", "high"])
     if domain == "sensor":
         base["unit_of_measurement"] = device.attributes.get("unit_of_measurement", "")
         base["device_class"] = device.attributes.get("device_class")

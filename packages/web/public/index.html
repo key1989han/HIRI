@@ -6,68 +6,177 @@
   <title>HIRI Web</title>
   <style>
     :root { font-family: system-ui, sans-serif; color: #0f172a; background: #f1f5f9; }
-    body { margin: 0; padding: 1rem; max-width: 960px; margin-inline: auto; }
-    h1 { color: #0369a1; }
+    body { margin: 0; padding: 1rem; max-width: 1040px; margin-inline: auto; }
+    h1 { color: #0369a1; margin-bottom: 0.25rem; }
+    .toolbar { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; margin: 0.75rem 0; }
     .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 0.75rem; }
     .card { background: #fff; border-radius: 10px; padding: 0.9rem; border: 1px solid #e2e8f0; }
     .card h3 { margin: 0 0 0.35rem; font-size: 1rem; }
     .muted { color: #64748b; font-size: 0.85rem; }
-    button { margin-top: 0.5rem; margin-right: 0.35rem; }
+    button, select, input { margin: 0.15rem 0.25rem 0.15rem 0; }
+    button { cursor: pointer; }
     #status { margin: 0.5rem 0 1rem; }
     .err { color: #b91c1c; }
+    .area-title { margin: 1.25rem 0 0.5rem; font-size: 1.05rem; color: #0c4a6e; border-bottom: 1px solid #cbd5e1; padding-bottom: 0.25rem; }
   </style>
 </head>
 <body>
-  <h1>HIRI Web</h1>
-  <p class="muted">User dashboard · talks to HIRI-bridge API</p>
-  <label>API base <input id="base" value="http://127.0.0.1:8780" size="32" /></label>
-  <button id="reload">Reload devices</button>
+  <h1 id="title">HIRI Web</h1>
+  <p class="muted" id="subtitle">User dashboard · HIRI-bridge API</p>
+  <div class="toolbar">
+    <label>API <input id="base" value="http://127.0.0.1:8780" size="28" /></label>
+    <label>Area
+      <select id="area"><option value="">All rooms</option></select>
+    </label>
+    <label>Search <input id="q" placeholder="name / id" size="16" /></label>
+    <button id="reload" type="button">Reload</button>
+    <button id="lang" type="button">VI / EN</button>
+  </div>
   <div id="status" class="muted">Not loaded</div>
-  <div class="grid" id="grid"></div>
+  <div id="rooms"></div>
   <script>
-    const statusEl = document.getElementById('status');
-    const grid = document.getElementById('grid');
-    async function load() {
-      const base = document.getElementById('base').value.replace(/\/$/, '');
-      statusEl.textContent = 'Loading…';
-      statusEl.className = 'muted';
-      try {
-        const [stats, devices] = await Promise.all([
-          fetch(base + '/stats').then(r => r.json()),
-          fetch(base + '/devices').then(r => r.json()),
-        ]);
-        statusEl.textContent = `Devices: ${stats.total} · online: ${stats.online}`;
-        grid.innerHTML = '';
-        for (const d of devices) {
+    const i18n = {
+      en: {
+        title: 'HIRI Web',
+        subtitle: 'User dashboard · HIRI-bridge API',
+        statusIdle: 'Not loaded',
+        reload: 'Reload',
+        allRooms: 'All rooms',
+        search: 'Search',
+      },
+      vi: {
+        title: 'HIRI Web',
+        subtitle: 'Bảng điều khiển · API HIRI-bridge',
+        statusIdle: 'Chưa tải',
+        reload: 'Tải lại',
+        allRooms: 'Tất cả phòng',
+        search: 'Tìm',
+      },
+    };
+    let lang = 'en';
+    let allDevices = [];
+
+    function t(k) { return (i18n[lang] || i18n.en)[k] || k; }
+
+    function applyLang() {
+      document.getElementById('title').textContent = t('title');
+      document.getElementById('subtitle').textContent = t('subtitle');
+      document.getElementById('reload').textContent = t('reload');
+      const area = document.getElementById('area');
+      if (area.options[0]) area.options[0].textContent = t('allRooms');
+    }
+
+    function render() {
+      const area = document.getElementById('area').value;
+      const q = document.getElementById('q').value.trim().toLowerCase();
+      let list = allDevices.slice();
+      if (area) list = list.filter(d => d.area === area);
+      if (q) list = list.filter(d =>
+        (d.name || '').toLowerCase().includes(q) ||
+        (d.id || '').toLowerCase().includes(q) ||
+        (d.domain || '').toLowerCase().includes(q)
+      );
+      const byArea = {};
+      for (const d of list) {
+        const a = d.area || 'home';
+        (byArea[a] = byArea[a] || []).push(d);
+      }
+      const root = document.getElementById('rooms');
+      root.innerHTML = '';
+      const areas = Object.keys(byArea).sort();
+      if (!areas.length) {
+        root.innerHTML = '<p class="muted">No devices</p>';
+        return;
+      }
+      for (const a of areas) {
+        const h = document.createElement('h2');
+        h.className = 'area-title';
+        h.textContent = a + ' (' + byArea[a].length + ')';
+        root.appendChild(h);
+        const grid = document.createElement('div');
+        grid.className = 'grid';
+        for (const d of byArea[a]) {
           const card = document.createElement('div');
           card.className = 'card';
           card.innerHTML = `<h3>${d.name}</h3>
-            <div class="muted">${d.id} · ${d.domain}</div>
+            <div class="muted">${d.id} · ${d.domain} · ${d.adapter || 'local'}</div>
             <pre class="muted">${JSON.stringify(d.state)}</pre>`;
           if (['light','switch','fan','siren'].includes(d.domain)) {
             const on = document.createElement('button');
             on.textContent = 'On';
-            on.onclick = () => cmd(base, d.id, 'turn_on');
+            on.onclick = () => cmd(d.id, 'turn_on');
             const off = document.createElement('button');
             off.textContent = 'Off';
-            off.onclick = () => cmd(base, d.id, 'turn_off');
+            off.onclick = () => cmd(d.id, 'turn_off');
             card.appendChild(on); card.appendChild(off);
           }
           grid.appendChild(card);
         }
+        root.appendChild(grid);
+      }
+    }
+
+    async function load() {
+      const base = document.getElementById('base').value.replace(/\/$/, '');
+      const statusEl = document.getElementById('status');
+      statusEl.textContent = 'Loading…';
+      statusEl.className = 'muted';
+      try {
+        const [stats, devices, areas] = await Promise.all([
+          fetch(base + '/stats').then(r => r.json()),
+          fetch(base + '/devices').then(r => r.json()),
+          fetch(base + '/areas').then(r => r.json()).catch(() => ({ areas: {} })),
+        ]);
+        allDevices = devices;
+        statusEl.textContent = `Devices: ${stats.total} · online: ${stats.online}`;
+        const sel = document.getElementById('area');
+        const cur = sel.value;
+        sel.innerHTML = '';
+        const opt0 = document.createElement('option');
+        opt0.value = '';
+        opt0.textContent = t('allRooms');
+        sel.appendChild(opt0);
+        const areaNames = Object.keys(areas.areas || {}).sort();
+        if (!areaNames.length) {
+          const s = new Set(devices.map(d => d.area || 'home'));
+          [...s].sort().forEach(a => {
+            const o = document.createElement('option');
+            o.value = a; o.textContent = a;
+            sel.appendChild(o);
+          });
+        } else {
+          areaNames.forEach(a => {
+            const o = document.createElement('option');
+            o.value = a; o.textContent = `${a} (${areas.areas[a]})`;
+            sel.appendChild(o);
+          });
+        }
+        if (cur) sel.value = cur;
+        render();
       } catch (e) {
         statusEl.textContent = 'Bridge offline? Start: hiri-bridge serve — ' + e;
         statusEl.className = 'err';
       }
     }
-    async function cmd(base, id, action) {
+
+    async function cmd(id, action) {
+      const base = document.getElementById('base').value.replace(/\/$/, '');
       await fetch(base + '/devices/' + encodeURIComponent(id) + '/command', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action })
       });
       load();
     }
+
     document.getElementById('reload').onclick = load;
+    document.getElementById('area').onchange = render;
+    document.getElementById('q').oninput = render;
+    document.getElementById('lang').onclick = () => {
+      lang = lang === 'en' ? 'vi' : 'en';
+      applyLang();
+      render();
+    };
+    applyLang();
     load();
   </script>
 </body>

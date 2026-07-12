@@ -1,6 +1,9 @@
 from __future__ import annotations
 
 from hiri_bridge import __version__
+from hiri_bridge.adapters import import_from_adapter, list_adapters
+from hiri_bridge.adapters.mqtt_pub import MqttDiscoveryPublisher
+from hiri_bridge.auth import OptionalTokenMiddleware, api_token
 from hiri_bridge.devices.registry import DeviceRegistry
 from hiri_bridge.devices.types import DOMAINS, Device
 from hiri_bridge.ha.discovery import export_discovery
@@ -18,6 +21,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+app.add_middleware(OptionalTokenMiddleware)
 
 _reg = DeviceRegistry()
 _reg.load_or_seed()
@@ -25,7 +29,14 @@ _reg.load_or_seed()
 
 @app.get("/health")
 def health() -> dict:
-    return {"ok": True, "service": "hiri-bridge", "version": __version__, "domains": DOMAINS}
+    return {
+        "ok": True,
+        "service": "hiri-bridge",
+        "version": __version__,
+        "domains": DOMAINS,
+        "auth_required": bool(api_token()),
+        "adapters": [a["name"] for a in list_adapters()],
+    }
 
 
 @app.get("/stats")
@@ -34,10 +45,12 @@ def stats() -> dict:
 
 
 @app.get("/devices")
-def list_devices(domain: str | None = None) -> list[dict]:
+def list_devices(domain: str | None = None, area: str | None = None) -> list[dict]:
     devices = _reg.list()
     if domain:
         devices = [d for d in devices if d.domain == domain]
+    if area:
+        devices = [d for d in devices if d.area == area]
     return [d.model_dump() for d in devices]
 
 
@@ -74,3 +87,38 @@ def ha_discovery() -> list[dict]:
 def seed() -> dict:
     _reg.seed()
     return _reg.stats()
+
+
+@app.get("/adapters")
+def adapters() -> list[dict]:
+    return list_adapters()
+
+
+@app.post("/adapters/{name}/import")
+def adapters_import(name: str) -> dict:
+    try:
+        devices = import_from_adapter(name)
+    except ValueError as exc:
+        raise HTTPException(400, str(exc)) from exc
+    for d in devices:
+        _reg.upsert(d)
+    return {"imported": len(devices), "adapter": name, "stats": _reg.stats()}
+
+
+@app.post("/mqtt/publish")
+def mqtt_publish(body: dict | None = None) -> dict:
+    body = body or {}
+    dry = body.get("dry_run", True)
+    pub = MqttDiscoveryPublisher(
+        host=body.get("host"),
+        port=body.get("port"),
+    )
+    return pub.publish(_reg.list(), dry_run=bool(dry))
+
+
+@app.get("/areas")
+def areas() -> dict:
+    by_area: dict[str, int] = {}
+    for d in _reg.list():
+        by_area[d.area] = by_area.get(d.area, 0) + 1
+    return {"areas": by_area}
