@@ -238,6 +238,25 @@ def default_seed_devices() -> list[Device]:
             state={"state": "off"},
             adapter="mqtt",
         ),
+        Device(
+            id="light.office_desk",
+            name="Office desk lamp",
+            domain="light",
+            model="HIRI-RGBW",
+            area="office",
+            state={"state": "off", "brightness": 0, "color_temp": 320},
+            attributes={"rgb": True},
+        ),
+        Device(
+            id="binary_sensor.motion_hall",
+            name="Hall motion",
+            domain="binary_sensor",
+            model="HIRI-PIR",
+            area="entry",
+            state={"state": "off"},
+            attributes={"device_class": "motion"},
+            adapter="mqtt",
+        ),
     ]
     return seeds
 

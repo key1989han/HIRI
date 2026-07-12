@@ -429,5 +429,39 @@
     },
     "attributes": {},
     "adapter": "mqtt"
+  },
+  {
+    "id": "light.office_desk",
+    "name": "Office desk lamp",
+    "domain": "light",
+    "manufacturer": "HIRI",
+    "model": "HIRI-RGBW",
+    "area": "office",
+    "online": true,
+    "state": {
+      "state": "off",
+      "brightness": 0,
+      "color_temp": 320
+    },
+    "attributes": {
+      "rgb": true
+    },
+    "adapter": "local"
+  },
+  {
+    "id": "binary_sensor.motion_hall",
+    "name": "Hall motion",
+    "domain": "binary_sensor",
+    "manufacturer": "HIRI",
+    "model": "HIRI-PIR",
+    "area": "entry",
+    "online": true,
+    "state": {
+      "state": "off"
+    },
+    "attributes": {
+      "device_class": "motion"
+    },
+    "adapter": "mqtt"
   }
 ]
