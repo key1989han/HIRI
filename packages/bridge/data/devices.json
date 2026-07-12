@@ -533,5 +533,36 @@
       ]
     },
     "adapter": "local"
+  },
+  {
+    "id": "sensor.power_panel",
+    "name": "Panel power",
+    "domain": "sensor",
+    "manufacturer": "HIRI",
+    "model": "HIRI-PWR",
+    "area": "utility",
+    "online": true,
+    "state": {
+      "state": 412.0
+    },
+    "attributes": {
+      "unit_of_measurement": "W",
+      "device_class": "power"
+    },
+    "adapter": "mqtt"
+  },
+  {
+    "id": "switch.washer",
+    "name": "Washer outlet",
+    "domain": "switch",
+    "manufacturer": "HIRI",
+    "model": "HIRI-RELAY",
+    "area": "utility",
+    "online": true,
+    "state": {
+      "state": "off"
+    },
+    "attributes": {},
+    "adapter": "mqtt"
   }
 ]

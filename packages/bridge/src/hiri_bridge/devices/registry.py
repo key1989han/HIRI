@@ -295,6 +295,25 @@ def default_seed_devices() -> list[Device]:
             state={"state": "off", "brightness": 0, "color_temp": 300},
             attributes={"rgb": True, "effect_list": ["none", "pulse"]},
         ),
+        Device(
+            id="sensor.power_panel",
+            name="Panel power",
+            domain="sensor",
+            model="HIRI-PWR",
+            area="utility",
+            state={"state": 412.0},
+            attributes={"unit_of_measurement": "W", "device_class": "power"},
+            adapter="mqtt",
+        ),
+        Device(
+            id="switch.washer",
+            name="Washer outlet",
+            domain="switch",
+            model="HIRI-RELAY",
+            area="utility",
+            state={"state": "off"},
+            adapter="mqtt",
+        ),
     ]
     return seeds
 
