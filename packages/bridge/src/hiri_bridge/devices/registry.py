@@ -219,6 +219,25 @@ def default_seed_devices() -> list[Device]:
             state={"state": "off", "percentage": 0, "oscillating": False},
             attributes={"percentage_step": 25, "preset_modes": ["breeze", "sleep"]},
         ),
+        Device(
+            id="sensor.co2_office",
+            name="Office CO2",
+            domain="sensor",
+            model="HIRI-CO2",
+            area="office",
+            state={"state": 640.0},
+            attributes={"unit_of_measurement": "ppm", "device_class": "carbon_dioxide"},
+            adapter="mqtt",
+        ),
+        Device(
+            id="switch.irrigation_bed1",
+            name="Irrigation bed 1",
+            domain="switch",
+            model="HIRI-RELAY",
+            area="farm",
+            state={"state": "off"},
+            adapter="mqtt",
+        ),
     ]
     return seeds
 

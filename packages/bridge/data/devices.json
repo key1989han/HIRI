@@ -398,5 +398,36 @@
       ]
     },
     "adapter": "local"
+  },
+  {
+    "id": "sensor.co2_office",
+    "name": "Office CO2",
+    "domain": "sensor",
+    "manufacturer": "HIRI",
+    "model": "HIRI-CO2",
+    "area": "office",
+    "online": true,
+    "state": {
+      "state": 640.0
+    },
+    "attributes": {
+      "unit_of_measurement": "ppm",
+      "device_class": "carbon_dioxide"
+    },
+    "adapter": "mqtt"
+  },
+  {
+    "id": "switch.irrigation_bed1",
+    "name": "Irrigation bed 1",
+    "domain": "switch",
+    "manufacturer": "HIRI",
+    "model": "HIRI-RELAY",
+    "area": "farm",
+    "online": true,
+    "state": {
+      "state": "off"
+    },
+    "attributes": {},
+    "adapter": "mqtt"
   }
 ]
