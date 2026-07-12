@@ -564,5 +564,35 @@
     },
     "attributes": {},
     "adapter": "mqtt"
+  },
+  {
+    "id": "binary_sensor.smoke_kitchen",
+    "name": "Kitchen smoke",
+    "domain": "binary_sensor",
+    "manufacturer": "HIRI",
+    "model": "HIRI-SMOKE",
+    "area": "kitchen",
+    "online": true,
+    "state": {
+      "state": "off"
+    },
+    "attributes": {
+      "device_class": "smoke"
+    },
+    "adapter": "mqtt"
+  },
+  {
+    "id": "switch.range_hood",
+    "name": "Range hood",
+    "domain": "switch",
+    "manufacturer": "HIRI",
+    "model": "HIRI-RELAY",
+    "area": "kitchen",
+    "online": true,
+    "state": {
+      "state": "off"
+    },
+    "attributes": {},
+    "adapter": "mqtt"
   }
 ]

@@ -314,6 +314,25 @@ def default_seed_devices() -> list[Device]:
             state={"state": "off"},
             adapter="mqtt",
         ),
+        Device(
+            id="binary_sensor.smoke_kitchen",
+            name="Kitchen smoke",
+            domain="binary_sensor",
+            model="HIRI-SMOKE",
+            area="kitchen",
+            state={"state": "off"},
+            attributes={"device_class": "smoke"},
+            adapter="mqtt",
+        ),
+        Device(
+            id="switch.range_hood",
+            name="Range hood",
+            domain="switch",
+            model="HIRI-RELAY",
+            area="kitchen",
+            state={"state": "off"},
+            adapter="mqtt",
+        ),
     ]
     return seeds
 
