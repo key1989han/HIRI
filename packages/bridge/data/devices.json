@@ -326,5 +326,38 @@
     },
     "attributes": {},
     "adapter": "local"
+  },
+  {
+    "id": "binary_sensor.window_kitchen",
+    "name": "Kitchen window",
+    "domain": "binary_sensor",
+    "manufacturer": "HIRI",
+    "model": "HIRI-CONTACT",
+    "area": "kitchen",
+    "online": true,
+    "state": {
+      "state": "off"
+    },
+    "attributes": {
+      "device_class": "window"
+    },
+    "adapter": "local"
+  },
+  {
+    "id": "sensor.pm25_living",
+    "name": "Living PM2.5",
+    "domain": "sensor",
+    "manufacturer": "HIRI",
+    "model": "HIRI-AQI",
+    "area": "living",
+    "online": true,
+    "state": {
+      "state": 12.0
+    },
+    "attributes": {
+      "unit_of_measurement": "\u00b5g/m\u00b3",
+      "device_class": "pm25"
+    },
+    "adapter": "mqtt"
   }
 ]

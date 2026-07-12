@@ -181,6 +181,25 @@ def default_seed_devices() -> list[Device]:
             area="home",
             state={"state": "disarmed"},
         ),
+        Device(
+            id="binary_sensor.window_kitchen",
+            name="Kitchen window",
+            domain="binary_sensor",
+            model="HIRI-CONTACT",
+            area="kitchen",
+            state={"state": "off"},
+            attributes={"device_class": "window"},
+        ),
+        Device(
+            id="sensor.pm25_living",
+            name="Living PM2.5",
+            domain="sensor",
+            model="HIRI-AQI",
+            area="living",
+            state={"state": 12.0},
+            attributes={"unit_of_measurement": "µg/m³", "device_class": "pm25"},
+            adapter="mqtt",
+        ),
     ]
     return seeds
 
