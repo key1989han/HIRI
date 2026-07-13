@@ -73,19 +73,65 @@ def demo_cmd() -> None:
 
 
 @devices_app.command("list")
-def devices_list(domain: str | None = typer.Option(None, "--domain", "-d")) -> None:
+def devices_list(
+    domain: str | None = typer.Option(None, "--domain", "-d"),
+    area: str | None = typer.Option(None, "--area", "-a", help="Filter by room/area"),
+    online_only: bool = typer.Option(False, "--online", help="Only online devices"),
+) -> None:
     reg = _registry()
     table = Table(title="HIRI devices")
     table.add_column("ID")
     table.add_column("Domain")
+    table.add_column("Area")
     table.add_column("Name")
     table.add_column("State")
     table.add_column("Adapter")
+    n = 0
     for d in reg.list():
         if domain and d.domain != domain:
             continue
-        table.add_row(d.id, d.domain, d.name, json.dumps(d.state, ensure_ascii=False)[:40], d.adapter)
+        dev_area = getattr(d, "area", None) or (d.attributes or {}).get("area") or ""
+        if area and str(dev_area).lower() != area.strip().lower():
+            continue
+        if online_only and not getattr(d, "online", True):
+            continue
+        n += 1
+        table.add_row(
+            d.id,
+            d.domain,
+            str(dev_area),
+            d.name,
+            json.dumps(d.state, ensure_ascii=False)[:40],
+            d.adapter,
+        )
     console.print(table)
+    console.print(f"[dim]shown={n}[/dim]")
+
+
+@devices_app.command("stats")
+def devices_stats() -> None:
+    """Domain / area / adapter counts from the registry."""
+    reg = _registry()
+    by_domain: dict[str, int] = {}
+    by_area: dict[str, int] = {}
+    by_adapter: dict[str, int] = {}
+    online = 0
+    for d in reg.list():
+        by_domain[d.domain] = by_domain.get(d.domain, 0) + 1
+        area = getattr(d, "area", None) or "unknown"
+        by_area[str(area)] = by_area.get(str(area), 0) + 1
+        by_adapter[d.adapter] = by_adapter.get(d.adapter, 0) + 1
+        if getattr(d, "online", True):
+            online += 1
+    console.print_json(
+        data={
+            "total": reg.stats().get("total"),
+            "online": online,
+            "by_domain": by_domain,
+            "by_area": by_area,
+            "by_adapter": by_adapter,
+        }
+    )
 
 
 @devices_app.command("cmd")
