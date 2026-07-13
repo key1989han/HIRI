@@ -39,10 +39,10 @@
   },
   {
     "id": "binary_sensor.door_front",
-    "name": "Front door",
+    "name": "Front door contact",
     "domain": "binary_sensor",
     "manufacturer": "HIRI",
-    "model": "HIRI-CONTACT",
+    "model": "HIRI-DOOR",
     "area": "entry",
     "online": true,
     "state": {
@@ -51,7 +51,7 @@
     "attributes": {
       "device_class": "door"
     },
-    "adapter": "local"
+    "adapter": "mqtt"
   },
   {
     "id": "sensor.soil_moisture_1",
@@ -707,5 +707,24 @@
       "percentage_step": 25
     },
     "adapter": "local"
+  },
+  {
+    "id": "lock.front_door",
+    "name": "Front door lock",
+    "domain": "lock",
+    "manufacturer": "HIRI",
+    "model": "HIRI-LOCK",
+    "area": "entry",
+    "online": true,
+    "state": {
+      "state": "locked"
+    },
+    "attributes": {
+      "supported_features": [
+        "lock",
+        "unlock"
+      ]
+    },
+    "adapter": "mqtt"
   }
 ]
