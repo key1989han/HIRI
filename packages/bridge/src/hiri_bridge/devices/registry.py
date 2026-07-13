@@ -408,6 +408,26 @@ def default_seed_devices() -> list[Device]:
             state={"state": "off", "percentage": 0},
             attributes={"percentage_step": 25},
         ),
+        Device(
+            id="binary_sensor.door_front",
+            name="Front door contact",
+            domain="binary_sensor",
+            model="HIRI-DOOR",
+            area="entry",
+            state={"state": "off"},
+            attributes={"device_class": "door"},
+            adapter="mqtt",
+        ),
+        Device(
+            id="lock.front_door",
+            name="Front door lock",
+            domain="lock",
+            model="HIRI-LOCK",
+            area="entry",
+            state={"state": "locked"},
+            attributes={"supported_features": ["lock", "unlock"]},
+            adapter="mqtt",
+        ),
     ]
     return seeds
 
