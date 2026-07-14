@@ -1162,5 +1162,23 @@
       "battery": 88
     },
     "adapter": "mqtt"
+  },
+  {
+    "id": "sensor.noise_office",
+    "name": "Office noise level",
+    "domain": "sensor",
+    "manufacturer": "HIRI",
+    "model": "HIRI-NOISE",
+    "area": "office",
+    "online": true,
+    "state": {
+      "state": "38"
+    },
+    "attributes": {
+      "device_class": "sound_pressure",
+      "unit_of_measurement": "dB",
+      "state_class": "measurement"
+    },
+    "adapter": "mqtt"
   }
 ]
