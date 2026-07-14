@@ -1233,5 +1233,23 @@
       "state_class": "measurement"
     },
     "adapter": "mqtt"
+  },
+  {
+    "id": "sensor.pm10_balcony",
+    "name": "Balcony PM10",
+    "domain": "sensor",
+    "manufacturer": "HIRI",
+    "model": "HIRI-PM10",
+    "area": "balcony",
+    "online": true,
+    "state": {
+      "state": "18"
+    },
+    "attributes": {
+      "device_class": "pm10",
+      "unit_of_measurement": "\u00b5g/m\u00b3",
+      "state_class": "measurement"
+    },
+    "adapter": "mqtt"
   }
 ]
