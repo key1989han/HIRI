@@ -1215,5 +1215,23 @@
       "battery": 85
     },
     "adapter": "mqtt"
+  },
+  {
+    "id": "sensor.voc_living",
+    "name": "Living room VOC",
+    "domain": "sensor",
+    "manufacturer": "HIRI",
+    "model": "HIRI-VOC",
+    "area": "living",
+    "online": true,
+    "state": {
+      "state": "120"
+    },
+    "attributes": {
+      "device_class": "volatile_organic_compounds",
+      "unit_of_measurement": "\u00b5g/m\u00b3",
+      "state_class": "measurement"
+    },
+    "adapter": "mqtt"
   }
 ]
