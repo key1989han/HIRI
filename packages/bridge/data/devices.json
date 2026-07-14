@@ -125,7 +125,7 @@
       "state": 28.1
     },
     "attributes": {
-      "unit_of_measurement": "\u00b0C",
+      "unit_of_measurement": "°C",
       "device_class": "temperature"
     },
     "adapter": "local"
@@ -561,7 +561,7 @@
       "state": 12.0
     },
     "attributes": {
-      "unit_of_measurement": "\u00b5g/m\u00b3",
+      "unit_of_measurement": "µg/m³",
       "device_class": "pm25"
     },
     "adapter": "mqtt"
@@ -948,6 +948,24 @@
         "lock",
         "unlock"
       ]
+    },
+    "adapter": "mqtt"
+  },
+  {
+    "id": "fan.office_desk",
+    "name": "Office desk fan",
+    "domain": "fan",
+    "manufacturer": "HIRI",
+    "model": "HIRI-FAN",
+    "area": "office",
+    "online": true,
+    "state": {
+      "state": "on",
+      "percentage": 40,
+      "oscillating": true
+    },
+    "attributes": {
+      "supported_features": 7
     },
     "adapter": "mqtt"
   }
