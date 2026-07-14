@@ -125,7 +125,7 @@
       "state": 28.1
     },
     "attributes": {
-      "unit_of_measurement": "\u00b0C",
+      "unit_of_measurement": "°C",
       "device_class": "temperature"
     },
     "adapter": "local"
@@ -561,7 +561,7 @@
       "state": 12.0
     },
     "attributes": {
-      "unit_of_measurement": "\u00b5g/m\u00b3",
+      "unit_of_measurement": "µg/m³",
       "device_class": "pm25"
     },
     "adapter": "mqtt"
@@ -1052,7 +1052,7 @@
     "attributes": {
       "tuya_id": "bf789th",
       "category": "wsdcg",
-      "unit_of_measurement": "\u00b0C"
+      "unit_of_measurement": "°C"
     },
     "adapter": "tuya"
   },
@@ -1177,6 +1177,24 @@
     "attributes": {
       "device_class": "sound_pressure",
       "unit_of_measurement": "dB",
+      "state_class": "measurement"
+    },
+    "adapter": "mqtt"
+  },
+  {
+    "id": "sensor.humidity_closet",
+    "name": "Closet humidity",
+    "domain": "sensor",
+    "manufacturer": "HIRI",
+    "model": "HIRI-HUM",
+    "area": "closet",
+    "online": true,
+    "state": {
+      "state": "52"
+    },
+    "attributes": {
+      "device_class": "humidity",
+      "unit_of_measurement": "%",
       "state_class": "measurement"
     },
     "adapter": "mqtt"
