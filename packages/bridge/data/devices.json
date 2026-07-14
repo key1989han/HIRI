@@ -125,7 +125,7 @@
       "state": 28.1
     },
     "attributes": {
-      "unit_of_measurement": "°C",
+      "unit_of_measurement": "\u00b0C",
       "device_class": "temperature"
     },
     "adapter": "local"
@@ -561,7 +561,7 @@
       "state": 12.0
     },
     "attributes": {
-      "unit_of_measurement": "µg/m³",
+      "unit_of_measurement": "\u00b5g/m\u00b3",
       "device_class": "pm25"
     },
     "adapter": "mqtt"
@@ -1052,7 +1052,7 @@
     "attributes": {
       "tuya_id": "bf789th",
       "category": "wsdcg",
-      "unit_of_measurement": "°C"
+      "unit_of_measurement": "\u00b0C"
     },
     "adapter": "tuya"
   },
@@ -1196,6 +1196,23 @@
       "device_class": "humidity",
       "unit_of_measurement": "%",
       "state_class": "measurement"
+    },
+    "adapter": "mqtt"
+  },
+  {
+    "id": "binary_sensor.motion_garage",
+    "name": "Garage motion",
+    "domain": "binary_sensor",
+    "manufacturer": "HIRI",
+    "model": "HIRI-PIR",
+    "area": "garage",
+    "online": true,
+    "state": {
+      "state": "off"
+    },
+    "attributes": {
+      "device_class": "motion",
+      "battery": 85
     },
     "adapter": "mqtt"
   }
